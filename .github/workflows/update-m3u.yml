@@ -1,0 +1,4 @@
+*.pyc
+__pycache__/
+kanallar.m3u
+output/
