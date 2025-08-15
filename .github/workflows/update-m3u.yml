@@ -1,4 +1,38 @@
-*.pyc
-__pycache__/
-kanallar.m3u
-output/
+name: Update Birlesik M3U
+
+# Workflow tetikleme
+on:
+  schedule:
+    - cron: '0 6 * * *'   # Her gün 06:00 UTC
+  workflow_dispatch:       # Manuel tetikleme seçeneği
+
+jobs:
+  update-m3u:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Repo’yu klonla
+    - uses: actions/checkout@v3
+
+    # 2️⃣ Python kur
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 3️⃣ Bağımlılıkları yükle
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    # 4️⃣ Birleşik scripti çalıştır
+    - name: Run Birlesik script
+      run: python birlesik.py
+
+    # 5️⃣ M3U dosyasını commit ve push et
+    - name: Commit and push M3U
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add Birlesik.m3u
+        git commit -m "Update Birlesik M3U" || echo "No changes to commit"
+        git push
