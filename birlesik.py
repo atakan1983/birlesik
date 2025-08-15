@@ -90,7 +90,15 @@ class XYZsportsManager:
                     return r.text, url
             except:
                 continue
-        return None, "https://www.xyzsports248.xyz/"
+        return None, None
+
+    def find_dynamic_player_domain(self, html):
+        m = re.search(r'https?://([a-z0-9\-]+\.[0-9a-z]+\.click)', html)
+        return f"https://{m.group(1)}" if m else None
+
+    def extract_base_stream_url(self, html):
+        m = re.search(r'this\.baseStreamUrl\s*=\s*[\'"]([^\'"]+)', html)
+        return m.group(1) if m else None
 
     def build_m3u8_content(self, base_url, referer_url):
         m3u = []
@@ -103,15 +111,27 @@ class XYZsportsManager:
         return "\n".join(m3u)
 
     def calistir(self):
-        html, referer = self.find_working_domain()
-        base_url = "https://dummy.xyzsports.stream/"  # fallback dummy
-        m3u = self.build_m3u8_content(base_url, referer)
-        print(f"XYZsports içerik uzunluğu: {len(m3u)}")
-        return m3u
+        html, referer_url = self.find_working_domain()
+        if not html:
+            print("XYZsports: Çalışan domain bulunamadı!")
+            return ""
+        player_domain = self.find_dynamic_player_domain(html)
+        if not player_domain:
+            print("XYZsports: Player domain bulunamadı!")
+            return ""
+        r = self.httpx.get(f"{player_domain}/index.php?id={self.channel_ids[0]}", headers={
+            "User-Agent": "Mozilla/5.0",
+            "Referer": referer_url
+        })
+        base_url = self.extract_base_stream_url(r.text)
+        if not base_url:
+            print("XYZsports: Base stream URL bulunamadı!")
+            return ""
+        return self.build_m3u8_content(base_url, referer_url)
 
 # ---------------- Main ----------------
 if __name__ == "__main__":
-    CIKTI_DOSYASI = "Birlesik.m3u"  # Sabit dosya adı, config yok
+    CIKTI_DOSYASI = "Birlesik.m3u"
 
     all_m3u = ["#EXTM3U"]
 
@@ -121,7 +141,9 @@ if __name__ == "__main__":
 
     # XYZsports
     xyz = XYZsportsManager()
-    all_m3u.append(xyz.calistir())
+    all_m3u_xyz = xyz.calistir()
+    if all_m3u_xyz:
+        all_m3u.append(all_m3u_xyz)
 
     # Timestamp ekle → workflow her zaman commit yapar
     all_m3u.append(f'# Generated: {datetime.utcnow().isoformat()}')
