@@ -56,7 +56,7 @@ class Dengetv54Manager:
                     return url
             except:
                 continue
-        return "https://dengetv54.live/"  # fallback
+        return "https://dengetv54.live/"
 
     def build_m3u8_content(self, referer_url):
         m3u = []
@@ -76,9 +76,15 @@ class Dengetv54Manager:
 
 # ---------------- XYZsports ----------------
 class XYZsportsManager:
-    def __init__(self):
+    def __init__(self, channel_ids=None):
         self.httpx = Client(timeout=10, verify=False)
-        self.channel_ids = ["bein-sports-1", "bein-sports-2", "bein-sports-3"]
+        self.channel_ids = channel_ids or [
+            "bein-sports-1", "bein-sports-2", "bein-sports-3",
+            "bein-sports-4", "bein-sports-5", "bein-sports-max-1",
+            "bein-sports-max-2", "smart-spor", "smart-spor-2",
+            "trt-spor", "trt-spor-2", "aspor", "s-sport",
+            "s-sport-2", "s-sport-plus-1", "s-sport-plus-2"
+        ]
 
     def find_working_domain(self, start=248, end=350):
         headers = {"User-Agent": "Mozilla/5.0"}
@@ -141,11 +147,11 @@ if __name__ == "__main__":
 
     # XYZsports
     xyz = XYZsportsManager()
-    all_m3u_xyz = xyz.calistir()
-    if all_m3u_xyz:
-        all_m3u.append(all_m3u_xyz)
+    m3u_xyz = xyz.calistir()
+    if m3u_xyz:
+        all_m3u.append(m3u_xyz)
 
-    # Timestamp ekle → workflow her zaman commit yapar
+    # Timestamp ekle
     all_m3u.append(f'# Generated: {datetime.utcnow().isoformat()}')
 
     with open(CIKTI_DOSYASI, "w", encoding="utf-8") as f:
