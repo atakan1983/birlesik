@@ -146,7 +146,7 @@ if __name__ == "__main__":
             cfg = json.load(f)
         CIKTI_DOSYASI = cfg.get("ana_m3u_dosyasi", "Birlesik.m3u")
     else:
-        CIKTI_DOSYASI = "Birlesik.m3u"
+        CIKTI_DOSYASI = "kanallar.m3u"
 
     all_m3u = ["#EXTM3U"]  # Tek bir M3U başlığı
 
